@@ -54,20 +54,20 @@ class Redis:
 
         # Command: RPUSH list value
         elif cmd == "RPUSH":
-            list = args[0]
+            list_name = args[0]
             key = args[1]
-            return create_response(self.rpush(list, key))
+            return create_response(self.rpush(list_name, key))
 
         # Command: LPUSH list value
         elif cmd == "LPUSH":
-            list = args[0]
+            list_name = args[0]
             key = args[1]
-            return create_response(self.lpush(list, key))
+            return create_response(self.lpush(list_name, key))
 
         # Command: RPOP list
         elif cmd == "RPOP":
-            list = args[0]
-            return create_response(self.rpop(list))
+            list_name = args[0]
+            return create_response(self.rpop(list_name))
 
         # Command: EXPIRE key seconds
         elif cmd == "EXPIRE":
@@ -125,7 +125,7 @@ class Redis:
 
     def expire_keys(self):
         for key, _ in self.expiry.items():
-            if self.expiry[key] < time():
+            if self.db.get(key) and self.expiry[key] < time():
                 del self.db[key]
 
     def load_from_file(self):

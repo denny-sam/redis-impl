@@ -3,8 +3,8 @@ from redis import Redis
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-def recv(client: socket):
-    return client.recv(1024).decode('utf-8')
+def recv(c: socket):
+    return c.recv(1024).decode('utf-8')
 
 
 host = ''
