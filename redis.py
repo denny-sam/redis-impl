@@ -1,10 +1,9 @@
 import typing
 from time import time
 
-from commands import (
+from utils import (
     create_response,
     delimited_resp,
-    expire_keys,
     get_command_from_response,
     is_command_persistable,
     persist_to_aof,
@@ -19,9 +18,10 @@ class Redis:
         if not resp:
             return
         cmd_len, cmd, args = get_command_from_response(resp)
+        cmd = cmd.upper()
         print(f"Command received {cmd_len, cmd, args}")
 
-        expire_keys(self)
+        self.expire_keys()
 
         if is_command_persistable(cmd) and write_to_aof:
             persist_to_aof(resp)
@@ -72,8 +72,8 @@ class Redis:
         # Command: EXPIRE key seconds
         elif cmd == "EXPIRE":
             key = args[0]
-            time = float(args[1])
-            self.set_expiry(key, time)
+            time_in_sec = float(args[1])
+            self.set_expiry(key, time_in_sec)
             return create_response("OK")
 
         else:
@@ -124,13 +124,13 @@ class Redis:
         self.expiry[key] = time() + time_in_secs
 
     def expire_keys(self):
-        for key in self.expiry.keys():
+        for key, _ in self.expiry.items():
             if self.expiry[key] < time():
                 del self.db[key]
 
     def load_from_file(self):
         file_path = "aof.txt"
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             text = f.read()
             commands = text.split("----\n")
             for cmd in commands:

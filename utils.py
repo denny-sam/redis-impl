@@ -34,10 +34,6 @@ def get_command_from_response(resp: str):
     return cmd_len, cmd, args
 
 
-def expire_keys(db):
-    db.expire_keys()
-
-
 def is_command_persistable(cmd: str) -> bool:
     return cmd in commands_to_persist
 
