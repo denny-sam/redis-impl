@@ -1,5 +1,6 @@
 import typing
 from time import time
+import logging
 
 from utils import (
     create_response,
@@ -14,7 +15,7 @@ class Redis:
     db = {}
     expiry = {}
 
-    def handle_command(self, resp: str, write_to_aof: bool = True):
+    async def handle_command(self, resp: str, write_to_aof: bool = True):
         if not resp:
             return
         cmd_len, cmd, args = get_command_from_response(resp)
@@ -101,7 +102,6 @@ class Redis:
             self.set(list_name, [])
 
         self.db[list_name].append(value)
-        print(self.get(list_name))
         return self.db[list_name]
 
     def lpush(self, list_name: str, value: str) -> typing.List:
@@ -109,7 +109,6 @@ class Redis:
             self.set(list_name, [])
 
         self.db[list_name].insert(0, value)
-        print(self.get(list_name))
         return self.db[list_name]
 
     def rpop(self, list_name: str) -> typing.Optional[str]:
@@ -128,7 +127,7 @@ class Redis:
             if self.db.get(key) and self.expiry[key] < time():
                 del self.db[key]
 
-    def load_from_file(self):
+    async def load_from_file(self):
         file_path = "aof.txt"
         with open(file_path, "r", encoding="utf-8") as f:
             text = f.read()
@@ -136,4 +135,6 @@ class Redis:
             for cmd in commands:
                 cmd = "\r\n".join(cmd.split("\n"))
                 if cmd:
-                    self.handle_command(cmd, False)
+                    await self.handle_command(cmd, False)
+        logging.info("file loaded")
+        return
